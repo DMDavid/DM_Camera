@@ -1,0 +1,17 @@
+PODS:
+  - GPUImage (0.1.7)
+  - SDWebImage (3.8.2):
+    - SDWebImage/Core (= 3.8.2)
+  - SDWebImage/Core (3.8.2)
+
+DEPENDENCIES:
+  - GPUImage
+  - SDWebImage (~> 3.7)
+
+SPEC CHECKSUMS:
+  GPUImage: 733a5f0fab92df9de1c37ba9df520a833ccb406d
+  SDWebImage: '098e97e6176540799c27e804c96653ee0833d13c'
+
+PODFILE CHECKSUM: a322612e6ae64c050789fc6ad42bf9736b07e8a4
+
+COCOAPODS: 1.1.1
