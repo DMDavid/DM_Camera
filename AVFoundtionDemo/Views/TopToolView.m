@@ -27,8 +27,6 @@
     rotateCamaraBtn.frame = (CGRect){CGPointMake([UIScreen mainScreen].bounds.size.width - 10, 5), CGSizeMake(20, 20)};
     rotateCamaraBtn.imageView.image = [UIImage imageNamed:@"CameraFlip"];
     [self addSubview:rotateCamaraBtn];
-    
-    
 }
 
 

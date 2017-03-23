@@ -11,14 +11,17 @@
 #import <GPUImage/GPUImage.h>
 #import "GPUImageBeautifyFilter.h"
 
+#import "TopToolView.h"
+#import "BottomToolView.h"
+
 #define ToolViewHight 40
 
 @interface ViewController ()
 
 @property (nonatomic, strong) GPUImageVideoCamera *videoCamera;
 @property (nonatomic, strong) GPUImageView *filterView;
-@property (nonatomic, strong) UIView *topToolView;   //拍照上部View
-@property (nonatomic, strong) UIView *bottomToolView;   //拍照底部View
+@property (nonatomic, strong) TopToolView *topToolView;   //拍照上部View
+@property (nonatomic, strong) BottomToolView *bottomToolView;   //拍照底部View
 
 @end
 
@@ -99,18 +102,18 @@
     return _filterView;
 }
 
-- (UIView *)topToolView {
+- (TopToolView *)topToolView {
     if (!_topToolView) {
-        _topToolView = [[UIView alloc] initWithFrame:CGRectMake(0, -ToolViewHight, [UIScreen mainScreen].bounds.size.width, ToolViewHight)];
+        _topToolView = [[TopToolView alloc] initWithFrame:CGRectMake(0, -ToolViewHight, [UIScreen mainScreen].bounds.size.width, ToolViewHight)];
         _topToolView.hidden = YES;
         _topToolView.backgroundColor = [UIColor redColor];
     }
     return _topToolView;
 }
 
-- (UIView *)bottomToolView {
+- (BottomToolView *)bottomToolView {
     if (!_bottomToolView) {
-        _bottomToolView = [[UIView alloc] initWithFrame:CGRectMake(0, [UIScreen mainScreen].bounds.size.height, [UIScreen mainScreen].bounds.size.width, ToolViewHight)];
+        _bottomToolView = [[BottomToolView alloc] initWithFrame:CGRectMake(0, [UIScreen mainScreen].bounds.size.height, [UIScreen mainScreen].bounds.size.width, ToolViewHight)];
         _bottomToolView.hidden = YES;
         _bottomToolView.backgroundColor = [UIColor blueColor];
     }

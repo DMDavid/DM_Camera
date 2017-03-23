@@ -1,17 +1,20 @@
 PODS:
   - GPUImage (0.1.7)
+  - Masonry (1.0.2)
   - SDWebImage (3.8.2):
     - SDWebImage/Core (= 3.8.2)
   - SDWebImage/Core (3.8.2)
 
 DEPENDENCIES:
   - GPUImage
+  - Masonry
   - SDWebImage (~> 3.7)
 
 SPEC CHECKSUMS:
   GPUImage: 733a5f0fab92df9de1c37ba9df520a833ccb406d
+  Masonry: 7c429b56da9d4ee0bbb3ed77a5ea710d6a5df39e
   SDWebImage: '098e97e6176540799c27e804c96653ee0833d13c'
 
-PODFILE CHECKSUM: a322612e6ae64c050789fc6ad42bf9736b07e8a4
+PODFILE CHECKSUM: fb190761ffe52f8dc3935b817ff28f08cf01502a
 
 COCOAPODS: 1.1.1
