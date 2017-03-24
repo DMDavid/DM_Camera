@@ -1,6 +1,8 @@
 PODS:
   - GPUImage (0.1.7)
   - Masonry (1.0.2)
+  - MBProgressHUD (1.0.0)
+  - pop (1.0.9)
   - SDWebImage (3.8.2):
     - SDWebImage/Core (= 3.8.2)
   - SDWebImage/Core (3.8.2)
@@ -8,13 +10,17 @@ PODS:
 DEPENDENCIES:
   - GPUImage
   - Masonry
+  - MBProgressHUD
+  - pop
   - SDWebImage (~> 3.7)
 
 SPEC CHECKSUMS:
   GPUImage: 733a5f0fab92df9de1c37ba9df520a833ccb406d
   Masonry: 7c429b56da9d4ee0bbb3ed77a5ea710d6a5df39e
+  MBProgressHUD: 4890f671c94e8a0f3cf959aa731e9de2f036d71a
+  pop: f667631a5108a2e60d9e8797c9b32ddaf2080bce
   SDWebImage: '098e97e6176540799c27e804c96653ee0833d13c'
 
-PODFILE CHECKSUM: fb190761ffe52f8dc3935b817ff28f08cf01502a
+PODFILE CHECKSUM: 5ab97252f96a97b789d66e0db706a88a65d8b3a5
 
 COCOAPODS: 1.1.1

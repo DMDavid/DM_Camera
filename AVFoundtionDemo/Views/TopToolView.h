@@ -8,6 +8,19 @@
 
 #import <UIKit/UIKit.h>
 
+typedef void(^RotateCameraBlock)();
+typedef void(^FlashButtonDidClick)(BOOL flashIsOn);
+
 @interface TopToolView : UIView
+
+/**
+ *  旋转相机
+ */
+@property (nonatomic, copy) RotateCameraBlock rotateCameraBlock;
+
+/**
+ *  闪光灯点击回调
+ */
+@property (nonatomic, copy) FlashButtonDidClick flashButtonDidClickBlock;
 
 @end
