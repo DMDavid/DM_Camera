@@ -8,8 +8,9 @@
 
 #import "DMTakePhotoViewController.h"
 #import "EditPhotoViewController.h"
+#import "AppDelegate.h"
 
-#import "GPUImageFourInputFilter.h"
+#import "GPUImageBeautifyFilter.h"
 #import <GPUImage/GPUImage.h>
 
 #import "TopToolView.h"
@@ -28,6 +29,8 @@
 
 #import "BTBalloon.h"
 #import "CommonMenuView.h"
+
+#import "AnimationView.h"
 
 #define ToolViewHight 60
 
@@ -54,6 +57,11 @@
  *  拍照获取的图片
  */
 @property (nonatomic, strong) UIImage *takedImage;
+
+/**
+ *  动画View
+ */
+@property (nonatomic, strong) AnimationView *animationView;
 
 @end
 
@@ -87,6 +95,9 @@
     
     //弹出菜单
     [self configFunctionAction];
+    
+    //首次引导
+    [self configFristComeToApp];
 }
 
 -(void)viewWillAppear:(BOOL)animated
@@ -337,7 +348,7 @@
     [self.videoCamera addTarget:self.filterView];
     
     [self.videoCamera removeAllTargets];
-    GPUImageFourInputFilter *beautifyFilter = [[GPUImageFourInputFilter alloc] init];
+    GPUImageBeautifyFilter *beautifyFilter = [[GPUImageBeautifyFilter alloc] init];
     [self.videoCamera addTarget:beautifyFilter];
     [beautifyFilter addTarget:self.filterView];
     
@@ -350,18 +361,6 @@
     
     [[UIApplication sharedApplication].keyWindow addSubview:self.coverView];
     self.coverView.hidden = YES;
-    
-    
-//    //第一次来到app
-//    BOOL isFirstComeApp = YES;
-//    if (isFirstComeApp) {
-//        [[BTBalloon sharedInstance] showWithTitle:@"Say 拍照 To take a photo, try it! "
-//                                            image:[UIImage imageNamed:@"CameraFlip"]
-//                                     anchorToView:self.bottomToolView.voiceContorlBtn
-//                                      buttonTitle:nil
-//                                   buttonCallback:NULL
-//                                       afterDelay:0.3f];
-//    }
 }
 
 - (void)configSubViewsAction {
@@ -400,6 +399,21 @@
     
     //拍照
     self.bottomToolView.takePhotoBlock = ^ {
+        if ([[NSUserDefaults standardUserDefaults] boolForKey:IS_FRIST_PHOTO]) {
+            [[BTBalloon sharedInstance] showWithTitle:@"Say 拍照 To take a photo, try it! "
+                                                image:[UIImage imageNamed:@"CameraFlip"]
+                                         anchorToView:weakSelf.bottomToolView.voiceContorlBtn
+                                          buttonTitle:nil
+                                       buttonCallback:NULL
+                                           afterDelay:0.3f];
+            
+            //几秒后消失
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [[BTBalloon sharedInstance] hide];
+            });
+        }
+        [[NSUserDefaults standardUserDefaults] setBool:NO forKey:IS_FRIST_PHOTO];
+        
         [weakSelf saveImage];
     };
 }
@@ -424,6 +438,10 @@
 }
 
 - (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    
+    [[BTBalloon sharedInstance] hide];
+    [self removeAnimation];
+    
     UITouch *touch = [touches anyObject];
     
     if (touch.tapCount == 1)        //单击事件
@@ -492,7 +510,7 @@
     /**
      *  创建普通的MenuView，frame可以传递空值，宽度默认120，高度自适应
      */
-    [CommonMenuView createMenuWithFrame:CGRectMake(0, 0, 150, 40) target:self dataArray:[self getMenuArrayFromTakePhotoStatus] itemsClickBlock:^(NSString *str, NSInteger tag) {
+    [CommonMenuView createMenuWithFrame:CGRectMake(0, 0, 150, 50) target:self dataArray:[self getMenuArrayFromTakePhotoStatus] itemsClickBlock:^(NSString *str, NSInteger tag) {
         
         //取消弹出框
         [CommonMenuView hidden];
@@ -503,8 +521,8 @@
             [weakSelf.navigationController pushViewController:editPhotoViewController animated:YES];
             editPhotoViewController.takedImage = weakSelf.takedImage;
             
-        } else {
-            
+        } else if (tag == 3) {
+            [self.view addSubview:self.animationView];
         }
         
     } backViewTap:^{
@@ -542,11 +560,32 @@
     NSDictionary *editDict = @{@"imageName" : @"icon_button_affirm",
                                @"itemName" : @"           编辑   "
                                };
-    dataArray = @[editDict, voiceControlDict];
+    
+    NSDictionary *watchAnimation = @{@"imageName" : @"icon_button_affirm",
+                               @"itemName" : @"          看动画   "
+                               };
+    dataArray = @[editDict, voiceControlDict, watchAnimation];
     
     return dataArray;
 }
 
+
+#pragma mark - 首次引导
+
+- (void)configFristComeToApp {
+    //第一次来到app
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:IS_FRIST_ANIMATION]) {
+        [self.view addSubview:self.animationView];
+    }
+}
+
+- (void)removeAnimation {
+    if (_animationView) {
+        [_animationView removeAnimation];
+        [_animationView removeFromSuperview];
+        _animationView = nil;
+    }
+}
 
 #pragma mark - Get
 
@@ -604,6 +643,14 @@
 
 - (void)checkVoiceControl {
     [self startVoiceServer];
+}
+
+- (AnimationView *)animationView {
+    if (!_animationView) {
+        _animationView = [[AnimationView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+        [[NSUserDefaults standardUserDefaults] setBool:NO forKey:IS_FRIST_ANIMATION];
+    }
+    return _animationView;
 }
 
 @end

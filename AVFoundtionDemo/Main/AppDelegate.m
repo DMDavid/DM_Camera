@@ -24,6 +24,15 @@
     //讯飞sdk配置
     [self config_iflyMSC_Framework];
     
+    //首次引导
+    if (![[NSUserDefaults standardUserDefaults] valueForKey:IS_FRIST_ANIMATION]) {
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:IS_FRIST_ANIMATION];
+    }
+    //首次拍照
+    if (![[NSUserDefaults standardUserDefaults] valueForKey:IS_FRIST_PHOTO]) {
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:IS_FRIST_PHOTO];
+    }
+    
     return YES;
 }
 

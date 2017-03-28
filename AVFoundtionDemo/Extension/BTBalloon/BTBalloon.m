@@ -527,7 +527,7 @@ static CGFloat const margin = 10.0f;
 - (void)pointArrowAtView:(UIView *)view
 {
     CGPoint centerPoint = [view.superview convertPoint:view.center toView:[UIApplication sharedApplication].keyWindow];
-    CGFloat x = centerPoint.x - (arrowWidth / 2) - 10;
+    CGFloat x = centerPoint.x - (arrowWidth / 2);
     [self setArrowPosition:x];
 }
 

@@ -20,6 +20,11 @@ typedef void(^FunctionBlock)();
 @property (nonatomic, copy) TakePhotoBlock takePhotoBlock;
 
 /**
+ *  拍照按钮
+ */
+@property (nonatomic, strong) UIButton *takeBtn;
+
+/**
  *  声音控制
  */
 @property (nonatomic, copy) VoiceControlBlock voiceControlBlock;

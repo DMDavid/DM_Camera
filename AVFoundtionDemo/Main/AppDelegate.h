@@ -8,6 +8,9 @@
 
 #import <UIKit/UIKit.h>
 
+#define IS_FRIST_PHOTO @"isFirstTakePhoto"
+#define IS_FRIST_ANIMATION @"isFirstAnimation"
+
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow *window;

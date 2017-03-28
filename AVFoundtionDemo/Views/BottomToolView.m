@@ -43,6 +43,7 @@
     [takeBtn setImage:[UIImage imageNamed:@"takePhoto"] forState:UIControlStateNormal];
     [self addSubview:takeBtn];
     [takeBtn addTarget:self action:@selector(takePhotoAction) forControlEvents:UIControlEventTouchUpInside];
+    self.takeBtn = takeBtn;
     
     [takeBtn mas_makeConstraints:^(MASConstraintMaker *make) {
         make.centerY.equalTo(self.mas_centerY);
