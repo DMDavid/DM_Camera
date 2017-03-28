@@ -10,6 +10,7 @@
 
 typedef void(^TakePhotoBlock)();
 typedef void(^VoiceControlBlock)(BOOL voiceIsOn);
+typedef void(^FunctionBlock)();
 
 @interface BottomToolView : UIView
 
@@ -24,9 +25,19 @@ typedef void(^VoiceControlBlock)(BOOL voiceIsOn);
 @property (nonatomic, copy) VoiceControlBlock voiceControlBlock;
 
 /**
+ *  功能按钮
+ */
+@property (nonatomic, copy) FunctionBlock functionBlock;
+
+/**
  *  音频控制按钮
  */
 @property (nonatomic, strong) UIButton *voiceContorlBtn;
+
+/**
+ *  功能按钮
+ */
+@property (nonatomic, strong) UIButton *functionButton;
 
 - (void)resetVoiceButton;
 

@@ -16,6 +16,6 @@
  *
  *  @return NSData *
  */
-+ (UIImage *)dataWithScreenshotInPNGFormatImageSize:(CGSize)imageSize;
++ (UIImage *)dataWithScreenshotInPNGFormatImageSize:(CGSize)imageSize targetView:(UIView *)targetView;
 
 @end

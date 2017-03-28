@@ -2,47 +2,27 @@
 //  EditPhotoViewController.m
 //  AVFoundtionDemo
 //
-//  Created by APPLE on 17/3/24.
+//  Created by APPLE on 17/3/27.
 //  Copyright © 2017年 David. All rights reserved.
 //
 
 #import "EditPhotoViewController.h"
 #import "Masonry.h"
-#import "FilterCellView.h"
-#import "UIView+frameAdjust.h"
+#import "CLImageEditor.h"
 
-#define ScreenBounds [UIScreen mainScreen].bounds
-#define ScreenHeight ScreenBounds.size.height
-#define ScreenWidth ScreenBounds.size.width
-#define FourThreeFrame (CGRect){0, 0, ScreenWidth, ScreenWidth * (4 / 3.0)}
-
-#define IS_IPHONE_4 (fabs((double)[[UIScreen mainScreen]bounds].size.height - (double)480) < DBL_EPSILON)
-#define IS_IPHONE_5 (fabs((double)[[UIScreen mainScreen]bounds].size.height - (double)568) < DBL_EPSILON)
-#define IS_IPHONE_6 (fabs((double)[[UIScreen mainScreen]bounds].size.height - (double)667) < DBL_EPSILON)
-#define IS_IPHONE_6P (fabs((double)[[UIScreen mainScreen]bounds].size.height - (double)736) < DBL_EPSILON)
-
-#define UIColorFromRGBWithAlpha(rgbValue, a) [UIColor colorWithRed:((float)((rgbValue & 0xFF0000) >> 16))/255.0 green:((float)((rgbValue & 0xFF00) >> 8))/255.0 blue:((float)(rgbValue & 0xFF))/255.0 alpha:a]
-
-
-#define kThemeCellIdentifier @"kThemeCellIdentifier"
-
-static inline CGFloat filterCellWidth () {
-    if (IS_IPHONE_6P) {
-        return 76.0;
-    } else {
-        return 64.0;
-    }
-}
-
-@interface EditPhotoViewController () <UICollectionViewDelegateFlowLayout, UICollectionViewDataSource, UICollectionViewDelegate>
-
-@property (nonatomic, strong) UIImageView *imageView;
-@property (nonatomic, strong) UICollectionView *filterCollectionView;
-@property (nonatomic, strong) CALayer *overlayLayer;
+@interface EditPhotoViewController ()<UINavigationControllerDelegate, UIImagePickerControllerDelegate, UITabBarDelegate, UIActionSheetDelegate, UIScrollViewDelegate>
 
 @end
 
 @implementation EditPhotoViewController
+
+- (NSString *)navigationTitle {
+    return @"编辑";
+}
+
+- (UIViewController *)childViewControllerForStatusBarStyle{
+    return self.navigationController.topViewController;
+}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -50,107 +30,211 @@ static inline CGFloat filterCellWidth () {
     self.view.backgroundColor = [UIColor whiteColor];
     self.navigationController.title = @"Edit Photo";
     
-    [self setupSubViews];
-}
-
-- (void)setupSubViews {
-    self.imageView = [[UIImageView alloc] initWithImage:self.takedImage];
-    [self.view addSubview:self.imageView];
-    [self.imageView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.centerX.equalTo(self.view.mas_centerX);
-        make.centerY.equalTo(self.view.mas_centerY);
-    }];
+    self.imageView.image = self.takedImage;
     
-    [self.view.layer insertSublayer:self.overlayLayer atIndex:0];
-    [self.view addSubview:self.filterCollectionView];
     
 }
 
-
-#pragma mark - Delegate
-
--(NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
-    return self.filters.count;
+- (UIStatusBarStyle)preferredStatusBarStyle {
+    return UIStatusBarStyleLightContent;
 }
 
--(UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
-    FilterCellView * cell = [collectionView dequeueReusableCellWithReuseIdentifier:kThemeCellIdentifier forIndexPath:indexPath];
-    [cell configWithFilter:self.filters[indexPath.item]];
-    
-    if (cell.selected) {
-        cell.overlayLayer.hidden = NO;
-    } else {
-        cell.overlayLayer.hidden = YES;
-    }
-    
-    return cell;
+- (BOOL)shouldAutorotate
+{
+    return NO;
 }
 
-- (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
-    return CGSizeMake(filterCellWidth(), filterCellWidth());
+#if __IPHONE_OS_VERSION_MAX_ALLOWED < 90000
+- (NSUInteger)supportedInterfaceOrientations
+#else
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations
+#endif
+{
+    return UIInterfaceOrientationMaskPortrait;
 }
 
-- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
-    FilterCellView *cell = (FilterCellView *)[collectionView cellForItemAtIndexPath:indexPath];
-    cell.overlayLayer.hidden = NO;
-    
-//    if (_delegate && [_delegate respondsToSelector:@selector(filterViewDone:cellFrame:)]) {
-//        CGRect visibleRect = [_delegate filterViewDone:indexPath.item cellFrame:cell.frame];
-//        [collectionView scrollRectToVisible:visibleRect animated:YES];
-//    }
+- (void)pushedNewBtn
+{
+    UIActionSheet *sheet = [[UIActionSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"取消" destructiveButtonTitle:nil otherButtonTitles:@"拍照", @"从相册选一张", nil];
+    [sheet showInView:self.view.window];
 }
 
-- (void)collectionView:(UICollectionView *)collectionView didDeselectItemAtIndexPath:(NSIndexPath *)indexPath {
-    FilterCellView *cell = (FilterCellView *)[collectionView cellForItemAtIndexPath:indexPath];
-    cell.overlayLayer.hidden = YES;
-}
-
-- (BOOL)collectionView:(UICollectionView *)collectionView shouldSelectItemAtIndexPath:(NSIndexPath *)indexPath {
-    return YES;
-}
-
-
-#pragma mark - protect mothods
-
-- (void)setTakedImage:(UIImage *)takedImage {
-    _takedImage = takedImage;
-}
-
-- (UICollectionView *)filterCollectionView {
-    if (!_filterCollectionView) {
-        CGFloat newY = CGRectGetMaxY(FourThreeFrame);
-        CGFloat height = ScreenWidth * (1 / 3.0);
-        UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc] init];
-        layout.minimumLineSpacing = 0;
-        [layout setScrollDirection:UICollectionViewScrollDirectionHorizontal];
+- (void)pushedEditBtn
+{
+    if(_imageView.image){
+        CLImageEditor *editor = [[CLImageEditor alloc] initWithImage:_imageView.image delegate:self];
         
-        _filterCollectionView = [[UICollectionView alloc] initWithFrame:(CGRect){0, newY - height, ScreenWidth, filterCellWidth()} collectionViewLayout:layout];
-        _filterCollectionView.delegate = self;
-        _filterCollectionView.dataSource = self;
-        _filterCollectionView.alwaysBounceHorizontal = YES;
-        _filterCollectionView.backgroundColor = [UIColor clearColor];
-        _filterCollectionView.showsHorizontalScrollIndicator = NO;
-        [_filterCollectionView registerClass:[FilterCellView class] forCellWithReuseIdentifier:kThemeCellIdentifier];
-        UIEdgeInsets inset = _filterCollectionView.contentInset;
-        inset.left = 8;
-        _filterCollectionView.contentInset = inset;
-        _filterCollectionView.hidden = YES;
-        _filterCollectionView.alpha = 0;
-        _filterCollectionView.centerY = _overlayLayer.position.y;
+        [self presentViewController:editor animated:YES completion:nil];
     }
-    return _filterCollectionView;
+    else{
+        [self pushedNewBtn];
+    }
 }
 
-- (CALayer *)overlayLayer {
-    if (!_overlayLayer) {
-        CGFloat newY = CGRectGetMaxY(FourThreeFrame);
-        CGFloat height = ScreenWidth * (1 / 3.0);
-        _overlayLayer = [[CALayer alloc] init];
-        _overlayLayer.frame = (CGRect){ 0, newY - height, ScreenWidth, height };
-        _overlayLayer.hidden = YES;
-        _overlayLayer.backgroundColor = UIColorFromRGBWithAlpha(0x000000, 0.85).CGColor;
+- (void)pushedSaveBtn
+{
+    if(_imageView.image){
+        NSArray *excludedActivityTypes = @[UIActivityTypeAssignToContact, UIActivityTypeCopyToPasteboard, UIActivityTypeMessage];
+        
+        UIActivityViewController *activityView = [[UIActivityViewController alloc] initWithActivityItems:@[_imageView.image] applicationActivities:nil];
+        
+        activityView.excludedActivityTypes = excludedActivityTypes;
+        activityView.completionWithItemsHandler = ^(NSString *activityType, BOOL completed, NSArray *returnedItems, NSError *activityError) {
+            if(completed && [activityType isEqualToString:UIActivityTypeSaveToCameraRoll]){
+                UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Saved successfully" message:nil preferredStyle:UIAlertControllerStyleAlert];
+                [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+                [self presentViewController:alert animated:YES completion:nil];
+            }
+        };
+        
+        [self presentViewController:activityView animated:YES completion:nil];
     }
-    return _overlayLayer;
+    else{
+        [self pushedNewBtn];
+    }
 }
+
+#pragma mark- ImagePicker delegate
+
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
+{
+    UIImage *image = [info objectForKey:UIImagePickerControllerOriginalImage];
+    CLImageEditor *editor = [[CLImageEditor alloc] initWithImage:image];
+    editor.delegate = self;
+    
+    [picker pushViewController:editor animated:YES];
+}
+/*
+ - (void)navigationController:(UINavigationController *)navigationController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated
+ {
+ if([navigationController isKindOfClass:[UIImagePickerController class]] && [viewController isKindOfClass:[CLImageEditor class]]){
+ viewController.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(cancelButtonDidPush:)];
+ }
+ }
+ 
+ - (void)cancelButtonDidPush:(id)sender
+ {
+ [self.presentedViewController dismissViewControllerAnimated:YES completion:nil];
+ }
+ */
+#pragma mark- CLImageEditor delegate
+
+- (void)imageEditor:(CLImageEditor *)editor didFinishEdittingWithImage:(UIImage *)image
+{
+    _imageView.image = image;
+    [self refreshImageView];
+    
+    [editor dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (void)imageEditor:(CLImageEditor *)editor willDismissWithImageView:(UIImageView *)imageView canceled:(BOOL)canceled
+{
+    [self refreshImageView];
+}
+
+#pragma mark- Tapbar delegate
+
+- (void)deselectTabBarItem:(UITabBar*)tabBar
+{
+    tabBar.selectedItem = nil;
+}
+
+- (void)tabBar:(UITabBar *)tabBar didSelectItem:(UITabBarItem *)item
+{
+    [self performSelector:@selector(deselectTabBarItem:) withObject:tabBar afterDelay:0.2];
+    
+    switch (item.tag) {
+        case 0:
+            [self pushedNewBtn];
+            break;
+        case 1:
+            [self pushedEditBtn];
+            break;
+        case 2:
+            [self pushedSaveBtn];
+            break;
+        default:
+            break;
+    }
+}
+
+#pragma mark- Actionsheet delegate
+
+- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    if(buttonIndex==actionSheet.cancelButtonIndex){
+        return;
+    }
+    
+    UIImagePickerControllerSourceType type = UIImagePickerControllerSourceTypePhotoLibrary;
+    
+    if([UIImagePickerController isSourceTypeAvailable:type]){
+        if(buttonIndex==0 && [UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]){
+            type = UIImagePickerControllerSourceTypeCamera;
+        }
+        
+        UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+        picker.allowsEditing = NO;
+        picker.delegate   = self;
+        picker.sourceType = type;
+        
+        [self presentViewController:picker animated:YES completion:nil];
+    }
+}
+
+#pragma mark- ScrollView
+
+- (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView
+{
+    return _imageView.superview;
+}
+
+- (void)scrollViewDidZoom:(UIScrollView *)scrollView
+{
+    CGFloat Ws = _scrollView.frame.size.width - _scrollView.contentInset.left - _scrollView.contentInset.right;
+    CGFloat Hs = _scrollView.frame.size.height - _scrollView.contentInset.top - _scrollView.contentInset.bottom;
+    CGFloat W = _imageView.superview.frame.size.width;
+    CGFloat H = _imageView.superview.frame.size.height;
+    
+    CGRect rct = _imageView.superview.frame;
+    rct.origin.x = MAX((Ws-W)/2, 0);
+    rct.origin.y = MAX((Hs-H)/2, 0);
+    _imageView.superview.frame = rct;
+}
+
+- (void)resetImageViewFrame
+{
+    CGSize size = (_imageView.image) ? _imageView.image.size : _imageView.frame.size;
+    CGFloat ratio = MIN(_scrollView.frame.size.width / size.width, _scrollView.frame.size.height / size.height);
+    CGFloat W = ratio * size.width;
+    CGFloat H = ratio * size.height;
+    _imageView.frame = CGRectMake(0, 0, W, H);
+    _imageView.superview.bounds = _imageView.bounds;
+}
+
+- (void)resetZoomScaleWithAnimate:(BOOL)animated
+{
+    CGFloat Rw = _scrollView.frame.size.width / _imageView.frame.size.width;
+    CGFloat Rh = _scrollView.frame.size.height / _imageView.frame.size.height;
+    
+    //CGFloat scale = [[UIScreen mainScreen] scale];
+    CGFloat scale = 1;
+    Rw = MAX(Rw, _imageView.image.size.width / (scale * _scrollView.frame.size.width));
+    Rh = MAX(Rh, _imageView.image.size.height / (scale * _scrollView.frame.size.height));
+    
+    _scrollView.contentSize = _imageView.frame.size;
+    _scrollView.minimumZoomScale = 1;
+    _scrollView.maximumZoomScale = MAX(MAX(Rw, Rh), 1);
+    
+    [_scrollView setZoomScale:_scrollView.minimumZoomScale animated:animated];
+    [self scrollViewDidZoom:_scrollView];
+}
+
+- (void)refreshImageView
+{
+    [self resetImageViewFrame];
+    [self resetZoomScaleWithAnimate:NO];
+}
+
 
 @end

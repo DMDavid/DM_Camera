@@ -29,10 +29,13 @@
     [functionBtn setImage:[UIImage imageNamed:@"filtericon"] forState:UIControlStateNormal];
     [self addSubview:functionBtn];
     [functionBtn addTarget:self action:@selector(functionBtnDidClick:) forControlEvents:UIControlEventTouchUpInside];
+    self.functionButton = functionBtn;
     
     [functionBtn mas_makeConstraints:^(MASConstraintMaker *make) {
         make.centerY.equalTo(self.mas_centerY);
         make.left.equalTo(self.mas_left).offset(20);
+        make.width.equalTo(@60);
+        make.height.equalTo(@60);
     }];
     
     //拍照按钮
@@ -60,6 +63,7 @@
         make.width.equalTo(@40);
         make.height.equalTo(@40);
     }];
+    
 }
 
 - (void)resetVoiceButton {
@@ -67,7 +71,9 @@
 }
 
 - (void)functionBtnDidClick:(UIButton *)btn {
-    
+    if (self.functionBlock) {
+        self.functionBlock();
+    }
 }
 
 - (void)takePhotoAction {

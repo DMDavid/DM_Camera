@@ -26,6 +26,9 @@
 
 #import "YYTimer.h"
 
+#import "BTBalloon.h"
+#import "CommonMenuView.h"
+
 #define ToolViewHight 60
 
 @interface DMTakePhotoViewController () <IFlySpeechRecognizerDelegate, IFlyPcmRecorderDelegate>
@@ -42,10 +45,19 @@
 
 @property (nonatomic, strong) YYTimer *timer;
 
+/**
+ *  遮盖层 (模拟相机咔嚓)
+ */
+@property (nonatomic, strong) UIView *coverView;
+
+/**
+ *  拍照获取的图片
+ */
+@property (nonatomic, strong) UIImage *takedImage;
+
 @end
 
 @implementation DMTakePhotoViewController
-
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -71,6 +83,10 @@
             [weakSelf.timer invalidate];
         }
     };
+    
+    
+    //弹出菜单
+    [self configFunctionAction];
 }
 
 -(void)viewWillAppear:(BOOL)animated
@@ -139,7 +155,6 @@
     
     
     if (ret) {
-//        self.isCanceled = NO; //启动发送数据线程
         //初始化录音环境
         [IFlyAudioSession initRecordingAudioSession];
         
@@ -223,9 +238,6 @@
  other 听写出错
  ****/
 - (void) onError:(IFlySpeechError *) error {
-    
-    NSString *text ;
-    
     if (error.errorCode == 0 ) {
         if (_result.length == 0) {
 //            text = @"无识别结果";
@@ -335,6 +347,21 @@
 - (void)configSubViews {
     [self.view addSubview:self.topToolView];
     [self.view addSubview:self.bottomToolView];
+    
+    [[UIApplication sharedApplication].keyWindow addSubview:self.coverView];
+    self.coverView.hidden = YES;
+    
+    
+//    //第一次来到app
+//    BOOL isFirstComeApp = YES;
+//    if (isFirstComeApp) {
+//        [[BTBalloon sharedInstance] showWithTitle:@"Say 拍照 To take a photo, try it! "
+//                                            image:[UIImage imageNamed:@"CameraFlip"]
+//                                     anchorToView:self.bottomToolView.voiceContorlBtn
+//                                      buttonTitle:nil
+//                                   buttonCallback:NULL
+//                                       afterDelay:0.3f];
+//    }
 }
 
 - (void)configSubViewsAction {
@@ -378,13 +405,22 @@
 }
 
 - (void)saveImage {
-    UIImage *image = [UIImage dataWithScreenshotInPNGFormatImageSize:[UIScreen mainScreen].bounds.size];
+    //咔嚓
+    self.coverView.hidden = NO;
+    self.coverView.alpha = 1;
+    [UIView animateWithDuration:0.25 animations:^{
+        self.coverView.alpha = 0;
+        
+    } completion:^(BOOL finished) {
+        self.coverView.hidden = YES;
+    }];
+    
+    
+    UIImage *image = [UIImage dataWithScreenshotInPNGFormatImageSize:[UIScreen mainScreen].bounds.size targetView:self.filterView];
     [self loadImageFinished:image];
     
-    //编辑照片控制器
-    EditPhotoViewController *editPhotoViewController = [[EditPhotoViewController alloc] init];
-    [self.navigationController pushViewController:editPhotoViewController animated:YES];
-    editPhotoViewController.takedImage = image;
+    //赋值
+    _takedImage = image;
 }
 
 - (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
@@ -448,7 +484,71 @@
     NSLog(@"image = %@, error = %@, contextInfo = %@", image, error, contextInfo);
 }
 
-#pragma mark - Runtime
+
+#pragma mark - 功能按钮
+
+- (void)configFunctionAction {
+    __weak typeof(self) weakSelf = self;
+    /**
+     *  创建普通的MenuView，frame可以传递空值，宽度默认120，高度自适应
+     */
+    [CommonMenuView createMenuWithFrame:CGRectMake(0, 0, 150, 40) target:self dataArray:[self getMenuArrayFromTakePhotoStatus] itemsClickBlock:^(NSString *str, NSInteger tag) {
+        
+        //取消弹出框
+        [CommonMenuView hidden];
+        
+        if (tag == 1) {
+            //编辑照片控制器
+            EditPhotoViewController *editPhotoViewController = [[EditPhotoViewController alloc] init];
+            [weakSelf.navigationController pushViewController:editPhotoViewController animated:YES];
+            editPhotoViewController.takedImage = weakSelf.takedImage;
+            
+        } else {
+            
+        }
+        
+    } backViewTap:^{
+        
+    }];
+    
+    //设置功能
+    self.bottomToolView.functionBlock = ^{
+        //更新
+        [CommonMenuView updateMenuItemsWith:[weakSelf getMenuArrayFromTakePhotoStatus]];
+        
+        //转换坐标系
+        CGPoint centerPoint = [weakSelf.bottomToolView convertPoint:weakSelf.bottomToolView.functionButton.center toView:weakSelf.view];
+        CGPoint newCenterPoint = CGPointMake(centerPoint.x, centerPoint.y - weakSelf.bottomToolView.frame.size.height/2);
+        [CommonMenuView showMenuAtPoint:newCenterPoint];
+    };
+}
+
+- (NSArray *)getMenuArrayFromTakePhotoStatus {
+    NSArray *dataArray = nil;
+    
+    NSDictionary *voiceControlDict = @{@"imageName" : @"icon_button_record",
+                            @"itemName" : @"  添加语音控制词"
+                            };
+//    if (self.takedImage) {  //显示两个按钮
+//        NSDictionary *editDict = @{@"imageName" : @"icon_button_affirm",
+//                                @"itemName" : @"           编辑   "
+//                                };
+//        dataArray = @[editDict, voiceControlDict];
+//    
+//    } else {
+//        dataArray = @[voiceControlDict];
+//    }
+    
+    NSDictionary *editDict = @{@"imageName" : @"icon_button_affirm",
+                               @"itemName" : @"           编辑   "
+                               };
+    dataArray = @[editDict, voiceControlDict];
+    
+    return dataArray;
+}
+
+
+#pragma mark - Get
 
 - (GPUImageVideoCamera *)videoCamera {
     if (!_videoCamera) {
@@ -484,6 +584,15 @@
         _bottomToolView.backgroundColor = [UIColor blackColor];
     }
     return _bottomToolView;
+}
+
+- (UIView *)coverView {
+    if (!_coverView) {
+        _coverView = [[UIView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+        _coverView.backgroundColor = [UIColor blackColor];
+        _coverView.alpha = 0.9;
+    }
+    return _coverView;
 }
 
 - (YYTimer *)timer {

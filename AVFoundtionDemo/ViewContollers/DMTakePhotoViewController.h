@@ -6,9 +6,9 @@
 //  Copyright © 2017年 David. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
+#import "BaseViewController.h"
 
-@interface DMTakePhotoViewController : UIViewController
+@interface DMTakePhotoViewController : BaseViewController
 
 @end
 
