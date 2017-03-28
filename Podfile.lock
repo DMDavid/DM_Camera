@@ -1,5 +1,6 @@
 PODS:
   - GPUImage (0.1.7)
+  - lottie-ios (1.0.4)
   - Masonry (1.0.2)
   - MBProgressHUD (1.0.0)
   - pop (1.0.9)
@@ -9,6 +10,7 @@ PODS:
 
 DEPENDENCIES:
   - GPUImage
+  - lottie-ios
   - Masonry
   - MBProgressHUD
   - pop
@@ -16,11 +18,12 @@ DEPENDENCIES:
 
 SPEC CHECKSUMS:
   GPUImage: 733a5f0fab92df9de1c37ba9df520a833ccb406d
+  lottie-ios: 8b2c5ba38105430a72f03ce54be90d8dac950161
   Masonry: 7c429b56da9d4ee0bbb3ed77a5ea710d6a5df39e
   MBProgressHUD: 4890f671c94e8a0f3cf959aa731e9de2f036d71a
   pop: f667631a5108a2e60d9e8797c9b32ddaf2080bce
   SDWebImage: '098e97e6176540799c27e804c96653ee0833d13c'
 
-PODFILE CHECKSUM: 5ab97252f96a97b789d66e0db706a88a65d8b3a5
+PODFILE CHECKSUM: 7fd8b4f7eb8e97621e78faf74e30e8d26f1d5c0b
 
 COCOAPODS: 1.1.1

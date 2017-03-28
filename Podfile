@@ -4,5 +4,6 @@ target ‘AVFoundtionDemo' do
     pod 'Masonry'
     pod 'pop'
     pod 'MBProgressHUD'
+    pod 'lottie-ios'
 #    pod 'YYKit'
 end
